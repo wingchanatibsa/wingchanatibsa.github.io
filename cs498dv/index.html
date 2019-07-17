@@ -5,31 +5,43 @@
         fill: lightblue;
         stroke: black;
     }
+    path {stroke: black;}
 </style>
 
 <body onload='init()'>
     <svg width=300 height=300>
     </svg>
     <script>
+
+        const _survivorColor = 'lightgreen';
+        const _nonSurvivorColor = 'lightgray';
+
         async function init() {
             var data = await d3.csv('https://wingchanatibsa.github.io/cs498dv/titanic_dataset.csv');
             console.log(data);
 
-            var margin = 50;
-            var width = 200;
-            var height = 200;
+            var nonSurvivorRate = 61.62;
+            var survivorRate = 38.38;
 
-            var xScale = d3.scaleBand().domain([0,1,2,3,4,5]).range([0, width]);
-            var yScale = d3.scaleLinear().domain([0,42]).range([height,0]);
+            drawSurvivalRatePieChart(survivorRate, nonSurvivorRate);
+            
+        }
 
-            d3.select('svg').append('g')
-            .selectAll('rect')
-            .data(data)
-            .enter().append('rect')
-            .attr('x', function(d, i) {return xScale(i); })
-            .attr('y', function(d){ return yScale(d.Age)})
-            .attr('width', function(d) {return xScale.bandwidth(); })
-            .attr('height', function(d) {return height - yScale(d.Age); });
+        function drawSurvivalRatePieChart(survivorRate, nonSurvivorRate) {
+            var color = [_nonSurvivorColor, _survivorColor];
+            var pie = d3.pie();
+            var arc = d3.arc().innerRadius(0).outerRadius(100);
+
+            var margin = 150;
+            var svg = d3.select('svg');
+            svg.append('g')
+            .attr('transform', "translate(" + margin + "," + margin + ")")
+                .selectAll('path')
+                .data(pie([nonSurvivorRate, survivorRate]))
+                .enter()
+                .append('path')
+                .attr('d', arc)
+                .attr('fill', function(d, i){ return color[i]});
         }
     </script>
 </body>
