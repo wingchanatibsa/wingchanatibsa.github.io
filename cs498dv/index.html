@@ -20,8 +20,15 @@
             var data = await d3.csv('https://wingchanatibsa.github.io/cs498dv/titanic_dataset.csv');
             console.log(data);
 
-            var nonSurvivorRate = 61.62;
-            var survivorRate = 38.38;
+            var passengersCount = data.length;
+            var survivorsData = data.filter(function(d) { return d.Survived == "1"});
+            var nonSurvivorsData = data.filter(function(d) { return d.Survived == "0"});
+            
+            var survivorRate = survivorsData.length / passengersCount;
+            var nonSurvivorRate = nonSurvivorsData.length / passengersCount;
+            
+            console.log(survivorRate);
+            console.log(nonSurvivorRate);
 
             drawSurvivalRatePieChart(survivorRate, nonSurvivorRate);
             
