@@ -1,54 +1,202 @@
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <style>
+    #chart-title {
+        text-align: center;
+        font-size: 2em;
+        margin-top: 15px;
+    }
+
     rect {
         fill: lightblue;
         stroke: black;
     }
-    path {stroke: black;}
+
+    path {
+        stroke: black;
+    }
 </style>
 
 <body onload='init()'>
-    <svg width=300 height=300>
-    </svg>
+    <h1>Who survived in the Titanic Disaster? Did Passengers' class matter?</h1>
+    <div>
+        <div class="navigation">
+            <button onclick="showTotalSurvivalRateChart()">
+                Show Total Survival Rates
+            </button>
+            <button onclick="showSurvivalRateByClassLevel(1)">
+                Show Total Survival Rates in Class Level 1
+            </button>
+            <button onclick="showSurvivalRateByClassLevel(2)">
+                Show Total Survival Rates in Class Level 2
+            </button>
+            <button onclick="showSurvivalRateByClassLevel(3)">
+                Show Total Survival Rates in Class Level 3
+            </button>
+        </div>
+        <div class="diagram">
+            <div id="chart-title">Survival Rates</div>
+            <svg class="chart" width=960 height=500>
+            </svg>
+        </div>
+        <div id="message">
+            message
+        </div>
+    </div>
     <script>
 
         const _survivorColor = 'lightgreen';
         const _nonSurvivorColor = 'lightgray';
+        const _legendLabels = ['Did not Survive', 'Survived'];
+        var _data;
 
         async function init() {
-            var data = await d3.csv('https://wingchanatibsa.github.io/cs498dv/titanic_dataset.csv');
-            console.log(data);
+            _data = await d3.csv('https://wingchanatibsa.github.io/cs498dv/titanic_dataset.csv');
+            console.log(_data);
 
-            var passengersCount = data.length;
-            var survivorsData = data.filter(function(d) { return d.Survived == "1"});
-            var nonSurvivorsData = data.filter(function(d) { return d.Survived == "0"});
-            
-            var survivorRate = survivorsData.length / passengersCount;
-            var nonSurvivorRate = nonSurvivorsData.length / passengersCount;
-            
-            console.log(survivorRate);
-            console.log(nonSurvivorRate);
+            showTotalSurvivalRateChart();
 
-            drawSurvivalRatePieChart(survivorRate, nonSurvivorRate);
-            
+        }
+        function formatPercentage(value) {
+            return parseFloat(value * 100).toFixed(2) + "%";
         }
 
-        function drawSurvivalRatePieChart(survivorRate, nonSurvivorRate) {
-            var color = [_nonSurvivorColor, _survivorColor];
-            var pie = d3.pie();
-            var arc = d3.arc().innerRadius(0).outerRadius(100);
+        function showTotalSurvivalRateChart() {
+            clearChart();
 
-            var margin = 150;
-            var svg = d3.select('svg');
-            svg.append('g')
-            .attr('transform', "translate(" + margin + "," + margin + ")")
-                .selectAll('path')
-                .data(pie([nonSurvivorRate, survivorRate]))
+            document.getElementById('chart-title').innerHTML = 'Total Survival Rates';
+
+            var data = _data;
+            var passengersCount = data.length;
+            var survivorsData = data.filter(function (d) { return d.Survived == "1" });
+            var nonSurvivorsData = data.filter(function (d) { return d.Survived == "0" });
+
+            var survivorsCount = survivorsData.length;
+            var nonSurvivorsCount = nonSurvivorsData.length;
+            var survivorRate = survivorsCount / passengersCount;
+            var nonSurvivorRate = nonSurvivorsCount / passengersCount;
+
+            drawSurvivalPieChart(nonSurvivorRate, survivorRate);
+
+            document.getElementById('message').innerHTML = 'The total number of passengers in Titanic Disaster were ' + passengersCount + ' passengers.'
+                + ' There are ' + survivorsCount + ' passengers (' + formatPercentage(survivorRate) + ') survived and '
+                + nonSurvivorsCount + ' passengers (' + formatPercentage(nonSurvivorRate) + ') did not survived.';
+        }
+
+        function showSurvivalRateByClassLevel(classLevel) {
+            clearChart();
+
+            document.getElementById('chart-title').innerHTML = 'Survival Rates in Class Level ' + classLevel;
+
+            var data = _data;
+            var passengersCount = data.length;
+            var survivorsData = data.filter(function (d) { return d.Survived == "1" && d.Pclass == classLevel });
+            var nonSurvivorsData = data.filter(function (d) { return d.Survived == "0" && d.Pclass == classLevel });
+
+            var survivorsCount = survivorsData.length;
+            var nonSurvivorsCount = nonSurvivorsData.length;
+            var survivorRate = survivorsCount / passengersCount;
+            var nonSurvivorRate = nonSurvivorsCount / passengersCount;
+            var passengersInThisClassLevel = survivorsCount + nonSurvivorsCount;
+
+            drawSurvivalPieChart(nonSurvivorRate, survivorRate);
+
+            document.getElementById('message').innerHTML = 'The total number of passengers in Class level ' + classLevel + ' were ' + passengersInThisClassLevel + ' out of ' + passengersCount + ' passengers.'
+                + 'Witin these ' + passengersInThisClassLevel + ' passengers, there are ' + survivorsCount + ' passengers (' + formatPercentage(survivorRate) + ') survived and '
+                + nonSurvivorsCount + ' passengers (' + formatPercentage(nonSurvivorRate) + ') did not survived.';
+        }
+
+        function clearChart() {
+            document.getElementById('chart-title').innerHTML = '';
+            document.getElementById('message').innerHTML = '';
+            d3.selectAll("svg > *").remove();
+        }
+
+        function drawSurvivalPieChart(nonSurvivorValue, survivorValue) {
+            var data = [nonSurvivorValue, survivorValue];
+            var color = [_nonSurvivorColor, _survivorColor];
+            var legendcolor = d3.scaleOrdinal()
+                .domain(_legendLabels)
+                .range(color);
+
+            var pie = d3.pie();
+            var width = 960;
+            var height = 500;
+            var radius = Math.min(width, height) / 2;
+            var arc = d3.arc().innerRadius(radius - 30).outerRadius(radius - 100);
+
+            var svg = d3.select('svg')
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+            svg.append("g")
+                .attr("class", "labels");
+            svg.append("g")
+                .attr("class", "legend");
+
+            //pie chart body
+            svg.selectAll('path')
+                .data(pie(data))
                 .enter()
                 .append('path')
                 .attr('d', arc)
-                .attr('fill', function(d, i){ return color[i]});
+                .attr('fill', function (d, i) { return color[i] });
+
+            //percentage labels
+            var key = function (d) { return d.value; };
+            var text = svg.select(".labels").selectAll("text")
+                .data(pie(data), key);
+            text.enter()
+                .append("text")
+                .attr("transform", function (d) {
+                    return "translate(" + ((radius - 12) * Math.sin(((d.endAngle - d.startAngle) / 2) + d.startAngle)) + "," + (-1 * (radius - 12) * Math.cos(((d.endAngle - d.startAngle) / 2) + d.startAngle)) + ")";
+                })
+                .attr("dy", ".35em")
+                .style("text-anchor", function (d) {
+                    var rads = ((d.endAngle - d.startAngle) / 2) + d.startAngle;
+                    if ((rads > 7 * Math.PI / 4 && rads < Math.PI / 4) || (rads > 3 * Math.PI / 4 && rads < 5 * Math.PI / 4)) {
+                        return "middle";
+                    } else if (rads >= Math.PI / 4 && rads <= 3 * Math.PI / 4) {
+                        return "start";
+                    } else if (rads >= 5 * Math.PI / 4 && rads <= 7 * Math.PI / 4) {
+                        return "end";
+                    } else {
+                        return "middle";
+                    }
+                })
+                .text(function (d, i) {
+                    return formatPercentage(d.value);
+                });
+
+            var size = 20
+            //legend squares
+            svg.select('.legend')
+                .attr("transform", "translate(250, -300)")
+                .selectAll("mydots")
+                .data(_legendLabels)
+                .enter()
+                .append("rect")
+                .attr("x", 0)
+                .attr("y", function (d, i) { return 100 + i * (size + 5) })
+                .attr("width", size)
+                .attr("height", size)
+                .style("fill", function (d) { return legendcolor(d) })
+
+            //legend labels
+            svg.select('.legend')
+                .attr("transform", "translate(250, -300)")
+                .selectAll("mylabels")
+                .data(_legendLabels)
+                .enter()
+                .append("text")
+                .attr("x", size * 1.2)
+                .attr("y", function (d, i) { return 100 + i * (size + 5) + (size / 2) })
+                .style("fill", function (d) { return 'black' })
+                .text(function (d) { return d })
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
         }
     </script>
 </body>
