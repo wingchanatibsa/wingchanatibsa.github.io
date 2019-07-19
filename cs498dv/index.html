@@ -1,5 +1,5 @@
 <html>
-    <title>Titanic Survival Rates by Class Levels</title>
+<title>Titanic Survival Rates by Class Levels</title>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <style>
     body {
@@ -12,6 +12,14 @@
     #chart-title {
         text-align: left;
         font-size: 1.5em;
+        margin-top: 15px;
+    }
+
+    #classLevelOptionsGroup {
+        margin-top: 15px;
+    }
+
+    #message {
         margin-top: 15px;
     }
 
@@ -32,26 +40,30 @@
     }
 </style>
 
-<body onload="buttonClick()">
+<body onload="totalPassengerButtonClicked()">
     <h1>Who survived in the Titanic Disaster? Did Passengers' class matter?</h1>
     <div class="navigation">
-        <button onclick="buttonClick();">Total passengers</button>
-        <button onclick="buttonClick(1)">Class Level 1 passengers</button>
-        <button onclick="buttonClick(2)">Class Level 2 passengers</button>
-        <button onclick="buttonClick(3)">Class Level 3 passengers</button>
+        <button onclick="totalPassengerButtonClicked();">Total passengers</button>
+        <button onclick="socialClassTypeButtonClicked(1)">By social class type</button>
         <button onclick="conclusionButtonClick()">Conclusion</button>
     </div>
     <div class="diagram">
         <div id="chart-title">Survival Rates</div>
+        <div id="classLevelOptionsGroup">
+            <form id="classLevelOptions">
+                <label>Choose by social class: </label>
+                <input type='radio' id='class1' value="1" name="mode" checked>Class Level 1</input>
+                <input type='radio' id='class2' value="2" name="mode">Class Level 2</input>
+                <input type='radio' id='class3' value="3" name="mode">Class Level 3</input>
+            </form>
+        </div>
+        <div id="message"> </div>
         <svg class="chart" width=960 height=500></svg>
-    </div>
-    <div id="message">
-        message
     </div>
     <script>
 
         var svg = d3.select("svg")
-		.append("g");
+            .append("g");
 
         svg.append("g")
             .attr("class", "slices");
@@ -90,14 +102,39 @@
             .domain(["Class 1", "Class 2", "Class 3"])
             .range(["#FA8C02", "#31A354", "#6B486B"]);
 
+
+        d3.selectAll("input")
+            .on("change", change);
+
+        function change() {
+            var value = this.value;
+            buttonClick(value);
+        }
+
+        function totalPassengerButtonClicked() {
+            showSocialClassOptions(false);
+            buttonClick();
+        }
+
+        function socialClassTypeButtonClicked() {
+            showSocialClassOptions(true);
+            buttonClick(1);
+        }
+
+        function showSocialClassOptions(isShow) {
+            document.getElementById('classLevelOptionsGroup').style.display = isShow ? 'block' : 'none';
+
+            document.getElementById("class1").checked = true;
+        }
+
         function buttonClick(classLevel) {
-            for(i=0; i<=1; i++) {
+            for (i = 0; i <= 1; i++) {
                 processData(classLevel);
             }
         }
 
         function conclusionButtonClick(classLevel) {
-            for(i=0; i<=1; i++) {
+            for (i = 0; i <= 1; i++) {
                 showConclusion();
             }
         }
@@ -170,6 +207,8 @@
 
         async function showConclusion() {
 
+            showSocialClassOptions(false);
+
             var dataset = await loadData();
 
             var passengersCount = dataset.length;
@@ -197,11 +236,11 @@
             document.getElementById('chart-title').innerHTML = 'Non-survivors by class levels';
 
             document.getElementById('message').innerHTML = 'Out of ' + nonSurvivorsTotalCount + ' non-survivors,'
-            + ' there are ' + nonSurvivorsClass1Count + ' passengers (' + formatPercentage(nonSurvivorClass1Rate) + ') in class 1, '
-            + ' ' + nonSurvivorsClass2Count + ' passengers (' + formatPercentage(nonSurvivorClass2Rate) + ') in class 2, '
-            + ' and ' + nonSurvivorsClass3Count + ' passengers (' + formatPercentage(nonSurvivorClass3Rate) + ') in class 3. ' ;
+                + ' there are ' + nonSurvivorsClass1Count + ' passengers (' + formatPercentage(nonSurvivorClass1Rate) + ') in class 1, '
+                + ' ' + nonSurvivorsClass2Count + ' passengers (' + formatPercentage(nonSurvivorClass2Rate) + ') in class 2, '
+                + ' and ' + nonSurvivorsClass3Count + ' passengers (' + formatPercentage(nonSurvivorClass3Rate) + ') in class 3. ';
 
-            
+
             console.dir(data);
 
             drawPieChart(data, key, classLevelcolor);
