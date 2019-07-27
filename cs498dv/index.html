@@ -36,6 +36,22 @@
         stroke-width: 2px;
     }
 
+    .tooltip {
+        background: #ffff88;
+        box-shadow: 0 0 5px #ffff88;
+        color: #333;
+        font-size: 12px;
+        left: 0px;
+        padding: 10px;
+        position: absolute;
+        text-align: left;
+        top: 0px;
+        width: 150px;
+        z-index: 10;
+        display: block;
+        opacity: 0;
+    }
+
     polyline {
         opacity: .3;
         stroke: black;
@@ -70,9 +86,9 @@
         <div id="classLevelOptionsGroup">
             <form id="classLevelOptions">
                 <label>Social class: </label>
-                <input type='radio' id='class1' value="1" name="mode" checked>First</input>
-                <input type='radio' id='class2' value="2" name="mode">Second</input>
-                <input type='radio' id='class3' value="3" name="mode">Third</input>
+                <input type='radio' id='class1' value="1" name="mode" checked>First-Class</input>
+                <input type='radio' id='class2' value="2" name="mode">Second-Class</input>
+                <input type='radio' id='class3' value="3" name="mode">Third-Class</input>
             </form>
         </div>
     </div>
@@ -115,7 +131,7 @@
             .range(["#D9D9D9", "#31A354"]);
 
         var classLevelcolor = d3.scaleOrdinal()
-            .domain(["First Class", "Second Class", "Third Class"])
+            .domain(["First-Class", "Second-Class", "Third-Class"])
             .range(["#FA8C02", "#31A354", "#6B486B"]);
 
 
@@ -124,6 +140,7 @@
 
         function change() {
             var value = this.value;
+            highlightNav('nav' + value);
             buttonClick(value);
         }
 
@@ -231,32 +248,33 @@
             console.log(nonSurvivorsCount);
 
             var data = [
-                { label: 'Did not survive', value: nonSurvivorRate },
-                { label: 'Survived', value: survivorRate }
+                { label: 'Did not survive', value: nonSurvivorRate, count: nonSurvivorsCount },
+                { label: 'Survived', value: survivorRate, count: survivorsCount }
             ];
 
             if (classLevel == undefined) {
-                document.getElementById('chart-title').innerHTML = 'Overall survival rate in Titanic Disaster';
+                document.getElementById('chart-title').innerHTML = 'The overall survival rate in the Titanic Disaster';
             } else {
                 if (classLevel == 1) {
-                    document.getElementById('chart-title').innerHTML = 'First class passengers\' survival rate';
+                    document.getElementById('chart-title').innerHTML = 'First-class passengers\' survival rate';
                 }
                 if (classLevel == 2) {
-                    document.getElementById('chart-title').innerHTML = 'Second class passengers\' survival rate';
+                    document.getElementById('chart-title').innerHTML = 'Second-class passengers\' survival rate';
                 }
                 if (classLevel == 3) {
-                    document.getElementById('chart-title').innerHTML = 'Third class passengers\' survival rate';
+                    document.getElementById('chart-title').innerHTML = 'Third-class passengers\' survival rate';
                 }
             }
 
             if (classLevel == undefined) {
-                document.getElementById('message').innerHTML = 'Who could survive in the Titanic Disaster? Did it matter with your social class? We will explore the Titanic survival data and see if it provide the insight of this unforunate incident.'
-                    + 'Here is the data: The total number of passengers were ' + passengersCount + ' passengers.'
-                    + ' And only ' + survivorsCount + ' passengers (' + formatPercentage(survivorRate) + ') survived and sadly there were '
+                document.getElementById('message').innerHTML = 'Who could survive in the Titanic Disaster? Did it matter with your social class?'
+                    + ' We will explore the Titanic survival data and see if it provide the insight of this unfortunate incident.'
+                    + ' Here is the data: the total number of passengers was ' + passengersCount + ' passengers,'
+                    + ' only ' + survivorsCount + ' passengers (' + formatPercentage(survivorRate) + ') survived and sadly there were '
                     + nonSurvivorsCount + ' passengers (' + formatPercentage(nonSurvivorRate) + ') did not survive.';
 
             } else {
-                document.getElementById('message').innerHTML = 'For ' + classNameLabel(classLevel) + ' class, there were ' + passengersInThisClassLevel + ' out of ' + passengersCount + ' passengers.'
+                document.getElementById('message').innerHTML = 'For the ' + classNameLabel(classLevel) + ' class, there were ' + passengersInThisClassLevel + ' out of ' + passengersCount + ' passengers.'
                     + ' Within these ' + passengersInThisClassLevel + ' passengers, there are ' + survivorsCount + ' passengers (' + formatPercentage(survivorRate) + ') survived and '
                     + nonSurvivorsCount + ' passengers (' + formatPercentage(nonSurvivorRate) + ') did not survive.';
             }
@@ -301,9 +319,9 @@
             var nonSurvivorClass3Rate = nonSurvivorsClass3Count / nonSurvivorsTotalCount;
 
             var data = [
-                { label: 'First Class', value: nonSurvivorClass1Rate },
-                { label: 'Second Class', value: nonSurvivorClass2Rate },
-                { label: 'Third Class', value: nonSurvivorClass3Rate }
+                { label: 'First-Class', value: nonSurvivorClass1Rate, count: nonSurvivorsClass1Count },
+                { label: 'Second-Class', value: nonSurvivorClass2Rate, count: nonSurvivorsClass2Count },
+                { label: 'Third-Class', value: nonSurvivorClass3Rate, count: nonSurvivorsClass3Count }
             ];
 
             document.getElementById('chart-title').innerHTML = 'Non-survivors\' social class breakdown';
@@ -312,7 +330,10 @@
                 + ' had ' + nonSurvivorsClass1Count + ' passengers (' + formatPercentage(nonSurvivorClass1Rate) + ') died in first class, '
                 + ' ' + nonSurvivorsClass2Count + ' passengers (' + formatPercentage(nonSurvivorClass2Rate) + ') died in second class, '
                 + ' and ' + nonSurvivorsClass3Count + ' passengers (' + formatPercentage(nonSurvivorClass3Rate) + ') died in third class. '
-                + 'Based on data presented, the class division had sufficient importance to the chance of survival. Unforunately, there were very little chance of survival in third class passengers compared to the first and second class passengers. The importance of social classes on board the Titanic can be seen as a microcosm of British society at the time. In the case of Titanic, it is evident that social class was a matter of you survived or not.';
+                + 'Based on data presented, the class division had sufficient importance to the chance of survival.'
+                + ' Unfortunately, there was very little chance of survival in third class passengers compared to the first and second class passengers.'
+                + ' The importance of social classes onboard the Titanic can be seen as a microcosm of British society at the time.'
+                + ' In the case of Titanic, it is evident that social class was a matter of you survived or not.';
 
 
             console.dir(data);
@@ -346,6 +367,43 @@
 
             slice.exit()
                 .remove();
+
+            /* ------- TOOLTIPS ----------*/
+
+            var tooltip = d3.select('.diagram')
+                .append('div')
+                .attr('class', 'tooltip');
+
+            tooltip.append('div')
+                .attr('class', 'label');
+
+            tooltip.append('div')
+                .attr('class', 'count');
+
+            tooltip.append('div')
+                .attr('class', 'percent');
+
+            slice.on('mouseover', function (d) {
+                console.dir(d);
+
+                tooltip.select('.label').html(d.data.label.toUpperCase()).style('color', 'black');
+                tooltip.select('.count').html('Head count: ' + d.data.count);
+                tooltip.select('.percent').html('Percentage: ' + formatPercentage(d.data.value));
+
+                tooltip.style('display', 'block');
+                tooltip.style('opacity', 2);
+            });
+
+            slice.on('mousemove', function (d) {
+                tooltip.style('top', (d3.event.layerY + 10) + 'px')
+                    .style('left', (d3.event.layerX - 25) + 'px');
+            });
+
+            slice.on('mouseout', function () {
+                tooltip.style('display', 'none');
+                tooltip.style('opacity', 0);
+            });
+
 
             /* ------- TEXT LABELS -------*/
 
